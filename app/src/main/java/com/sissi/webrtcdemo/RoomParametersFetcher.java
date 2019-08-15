@@ -74,6 +74,7 @@ public class RoomParametersFetcher {
 
           @Override
           public void onHttpComplete(String response) {
+            // 通过websocket连接room成功
             roomHttpResponseParse(response);
           }
         });
@@ -138,6 +139,7 @@ public class RoomParametersFetcher {
         }
       }
       // Request TURN servers.
+      // 指示使用TURN且结果中没有TURN则请求
       if (!isTurnPresent && !roomJson.optString("ice_server_url").isEmpty()) {
         List<PeerConnection.IceServer> turnServers =
             requestTurnServers(roomJson.getString("ice_server_url"));
@@ -147,6 +149,7 @@ public class RoomParametersFetcher {
         }
       }
 
+      // 收到Signaling响应
       SignalingParameters params = new SignalingParameters(
           iceServers, initiator, clientId, wssUrl, wssPostUrl, offerSdp, iceCandidates);
       events.onSignalingParametersReady(params);

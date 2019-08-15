@@ -380,6 +380,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     if (screencaptureEnabled) {
       startScreenCapture();
     } else {
+      //[Vein]
       startCall();
     }
   }
@@ -750,6 +751,8 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     if (peerConnectionParameters.videoCallEnabled) {
       videoCapturer = createVideoCapturer();
     }
+
+    //[Vein]
     peerConnectionClient.createPeerConnection(
         localProxyVideoSink, remoteSinks, videoCapturer, signalingParameters);
 
@@ -757,6 +760,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
       logAndToast("Creating OFFER...");
       // Create offer. Offer SDP will be sent to answering client in
       // PeerConnectionEvents.onLocalDescription event.
+      //[Vein]
       peerConnectionClient.createOffer();
     } else {
       if (params.offerSdp != null) {
@@ -780,6 +784,9 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
+        //[Vein, RSP] 连接room成功。
+        // ？？？为什么连接room的过程中没有使用SDK中的接口？
+        // Why is signaling not defined by WebRTC?  https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/
         onConnectedToRoomInternal(params);
       }
     });

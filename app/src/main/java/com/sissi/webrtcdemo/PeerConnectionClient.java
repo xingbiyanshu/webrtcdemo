@@ -440,6 +440,7 @@ public class PeerConnectionClient {
       decoderFactory = new SoftwareVideoDecoderFactory();
     }
 
+    // [SDK] 创建factory
     factory = PeerConnectionFactory.builder()
                   .setOptions(options)
                   .setAudioDeviceModule(adm)
@@ -530,6 +531,7 @@ public class PeerConnectionClient {
     }
 
     // Create audio constraints.
+    //[SDK] 初始化媒体能力集
     audioConstraints = new MediaConstraints();
     // added for audio performance measurements
     if (peerConnectionParameters.noAudioProcessing) {
@@ -544,6 +546,7 @@ public class PeerConnectionClient {
           new MediaConstraints.KeyValuePair(AUDIO_NOISE_SUPPRESSION_CONSTRAINT, "false"));
     }
     // Create SDP constraints.
+    //[SDK]
     sdpMediaConstraints = new MediaConstraints();
     sdpMediaConstraints.mandatory.add(
         new MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"));
@@ -574,6 +577,7 @@ public class PeerConnectionClient {
     rtcConfig.enableDtlsSrtp = !peerConnectionParameters.loopback;
     rtcConfig.sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN;
 
+    //[SDK] 创建peerConnection。
     peerConnection = factory.createPeerConnection(rtcConfig, pcObserver);
 
     if (dataChannelEnabled) {
@@ -594,6 +598,7 @@ public class PeerConnectionClient {
 
     List<String> mediaStreamLabels = Collections.singletonList("ARDAMS");
     if (isVideoCallEnabled()) {
+      //[SDK] 添加视频轨道
       peerConnection.addTrack(createVideoTrack(videoCapturer), mediaStreamLabels);
       // We can add the renderers right away because we don't need to wait for an
       // answer to get the remote track.
@@ -603,6 +608,7 @@ public class PeerConnectionClient {
         remoteVideoTrack.addSink(remoteSink);
       }
     }
+    // [SDK] 添加音频轨道
     peerConnection.addTrack(createAudioTrack(), mediaStreamLabels);
     if (isVideoCallEnabled()) {
       findVideoSender();
@@ -775,6 +781,7 @@ public class PeerConnectionClient {
       if (peerConnection != null && !isError) {
         Log.d(TAG, "PC Create OFFER");
         isInitiator = true;
+        //[SDK] createOffer
         peerConnection.createOffer(sdpObserver, sdpMediaConstraints);
       }
     });
@@ -785,6 +792,7 @@ public class PeerConnectionClient {
       if (peerConnection != null && !isError) {
         Log.d(TAG, "PC create ANSWER");
         isInitiator = false;
+        //[SDK] createAnswer
         peerConnection.createAnswer(sdpObserver, sdpMediaConstraints);
       }
     });
@@ -833,6 +841,7 @@ public class PeerConnectionClient {
       }
       Log.d(TAG, "Set remote SDP.");
       SessionDescription sdpRemote = new SessionDescription(sdp.type, sdpDescription);
+      //[SDK] setRemoteDescription
       peerConnection.setRemoteDescription(sdpObserver, sdpRemote);
     });
   }
@@ -900,6 +909,7 @@ public class PeerConnectionClient {
 
   @Nullable
   private AudioTrack createAudioTrack() {
+    // [SDK] createAudioTrack
     audioSource = factory.createAudioSource(audioConstraints);
     localAudioTrack = factory.createAudioTrack(AUDIO_TRACK_ID, audioSource);
     localAudioTrack.setEnabled(enableAudio);
@@ -913,7 +923,7 @@ public class PeerConnectionClient {
     videoSource = factory.createVideoSource(capturer.isScreencast());
     capturer.initialize(surfaceTextureHelper, appContext, videoSource.getCapturerObserver());
     capturer.startCapture(videoWidth, videoHeight, videoFps);
-
+    // [SDK] createVideoTrack
     localVideoTrack = factory.createVideoTrack(VIDEO_TRACK_ID, videoSource);
     localVideoTrack.setEnabled(renderVideo);
     localVideoTrack.addSink(localRender);
@@ -1160,6 +1170,7 @@ public class PeerConnectionClient {
   }
 
   // Implementation detail: observe ICE & stream changes and react accordingly.
+  // [SDK]peerConnection事件回调。
   private class PCObserver implements PeerConnection.Observer {
     @Override
     public void onIceCandidate(final IceCandidate candidate) {
@@ -1285,6 +1296,7 @@ public class PeerConnectionClient {
       executor.execute(() -> {
         if (peerConnection != null && !isError) {
           Log.d(TAG, "Set local SDP from " + sdp.type);
+          //[SDK] setLocalDescription
           peerConnection.setLocalDescription(sdpObserver, sdp);
         }
       });

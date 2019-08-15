@@ -80,6 +80,7 @@ public class AsyncHttpURLConnection {
       }
 
       // Send POST request.
+      //通过websocket发送连接请求
       if (doOutput && postData.length > 0) {
         OutputStream outStream = connection.getOutputStream();
         outStream.write(postData);
@@ -87,6 +88,7 @@ public class AsyncHttpURLConnection {
       }
 
       // Get response.
+      // 直接在这里就可以获取响应？不是异步的吗？阻塞式获取？
       int responseCode = connection.getResponseCode();
       if (responseCode != 200) {
         events.onHttpError("Non-200 response to " + method + " to URL: " + url + " : "
@@ -94,6 +96,7 @@ public class AsyncHttpURLConnection {
         connection.disconnect();
         return;
       }
+      // 获取响应，阻塞式，有超时？
       InputStream responseStream = connection.getInputStream();
       String response = drainStream(responseStream);
       responseStream.close();

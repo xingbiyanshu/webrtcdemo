@@ -658,6 +658,7 @@ public class ConnectActivity extends Activity {
   private final OnClickListener connectListener = new OnClickListener() {
     @Override
     public void onClick(View view) {
+      // 点击呼叫按钮，连接房间
       connectToRoom(roomEditText.getText().toString(), false, false, false, 0);
     }
   };

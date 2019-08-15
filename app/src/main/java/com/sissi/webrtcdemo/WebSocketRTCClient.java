@@ -101,6 +101,7 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelEvents 
         WebSocketRTCClient.this.handler.post(new Runnable() {
           @Override
           public void run() {
+            //[Vein, RSP] connectToRoom 成功
             WebSocketRTCClient.this.signalingParametersReady(params);
           }
         });
