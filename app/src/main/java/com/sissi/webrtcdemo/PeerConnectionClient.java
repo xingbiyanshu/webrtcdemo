@@ -1296,7 +1296,7 @@ public class PeerConnectionClient {
       executor.execute(() -> {
         if (peerConnection != null && !isError) {
           Log.d(TAG, "Set local SDP from " + sdp.type);
-          //[SDK] setLocalDescription
+          //[SDK][signaling] setLocalDescription
           peerConnection.setLocalDescription(sdpObserver, sdp);
         }
       });

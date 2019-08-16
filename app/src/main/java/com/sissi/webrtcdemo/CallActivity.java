@@ -375,6 +375,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     if (loopback) {
       options.networkIgnoreMask = 0;
     }
+    //[Vein][Start] createPeerConnectionFactory
     peerConnectionClient.createPeerConnectionFactory(options);
 
     if (screencaptureEnabled) {
@@ -871,6 +872,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
         if (appRtcClient != null) {
           logAndToast("Sending " + sdp.type + ", delay=" + delta + "ms");
           if (signalingParameters.initiator) {
+              //[signaling] PeerConnection.setLocalDescription <-
             appRtcClient.sendOfferSdp(sdp);
           } else {
             appRtcClient.sendAnswerSdp(sdp);
