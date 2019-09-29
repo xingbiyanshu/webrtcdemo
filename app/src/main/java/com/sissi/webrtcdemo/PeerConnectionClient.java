@@ -334,6 +334,7 @@ public class PeerConnectionClient {
     final String fieldTrials = getFieldTrials(peerConnectionParameters);
     executor.execute(() -> {
       Log.d(TAG, "Initialize WebRTC. Field trials: " + fieldTrials);
+      //[SDK][Start] 初始化PeerConnectionFactory
       PeerConnectionFactory.initialize(
           PeerConnectionFactory.InitializationOptions.builder(appContext)
               .setFieldTrials(fieldTrials)

@@ -375,7 +375,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     if (loopback) {
       options.networkIgnoreMask = 0;
     }
-    //[Vein][Start] createPeerConnectionFactory
+    //[Vein]
     peerConnectionClient.createPeerConnectionFactory(options);
 
     if (screencaptureEnabled) {
