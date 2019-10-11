@@ -190,6 +190,9 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
   // LayoutParams.FLAG_SHOW_WHEN_LOCKED are deprecated.
   @SuppressWarnings("deprecation")
   public void onCreate(Bundle savedInstanceState) {
+
+    Log.e(TAG, "->onCreate");
+
     super.onCreate(savedInstanceState);
     Thread.setDefaultUncaughtExceptionHandler(new UnhandledExceptionHandler(this));
 
@@ -264,6 +267,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
       if (checkCallingOrSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
         logAndToast("Permission " + permission + " is not granted");
         setResult(RESULT_CANCELED);
+        Log.e(TAG, "->finish");
         finish();
         return;
       }
@@ -274,6 +278,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
       logAndToast(getString(R.string.missing_url));
       Log.e(TAG, "Didn't get any URL in intent!");
       setResult(RESULT_CANCELED);
+      Log.e(TAG, "->finish");
       finish();
       return;
     }
@@ -285,6 +290,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
       logAndToast(getString(R.string.missing_url));
       Log.e(TAG, "Incorrect room ID in intent!");
       setResult(RESULT_CANCELED);
+      Log.e(TAG, "->finish");
       finish();
       return;
     }
@@ -480,6 +486,8 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
   // Activity interfaces
   @Override
   public void onStop() {
+
+    Log.e(TAG, "->onStop");
     super.onStop();
     activityRunning = false;
     // Don't stop the video when using screencapture to allow user to show other apps to the remote
@@ -494,6 +502,8 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
 
   @Override
   public void onStart() {
+
+    Log.e(TAG, "->onStart");
     super.onStart();
     activityRunning = true;
     // Video is not paused for screencapture. See onPause.
@@ -507,6 +517,8 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
 
   @Override
   protected void onDestroy() {
+
+    Log.e(TAG, "->onDestroy");
     Thread.setDefaultUncaughtExceptionHandler(null);
     disconnect();
     if (logToast != null) {
@@ -653,6 +665,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     } else {
       setResult(RESULT_CANCELED);
     }
+    Log.e(TAG, "->finish");
     finish();
   }
 
