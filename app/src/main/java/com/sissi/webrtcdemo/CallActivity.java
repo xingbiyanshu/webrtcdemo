@@ -267,7 +267,6 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
       if (checkCallingOrSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
         logAndToast("Permission " + permission + " is not granted");
         setResult(RESULT_CANCELED);
-        Log.e(TAG, "->finish");
         finish();
         return;
       }
@@ -278,7 +277,6 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
       logAndToast(getString(R.string.missing_url));
       Log.e(TAG, "Didn't get any URL in intent!");
       setResult(RESULT_CANCELED);
-      Log.e(TAG, "->finish");
       finish();
       return;
     }
@@ -290,7 +288,6 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
       logAndToast(getString(R.string.missing_url));
       Log.e(TAG, "Incorrect room ID in intent!");
       setResult(RESULT_CANCELED);
-      Log.e(TAG, "->finish");
       finish();
       return;
     }
@@ -665,7 +662,6 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     } else {
       setResult(RESULT_CANCELED);
     }
-    Log.e(TAG, "->finish");
     finish();
   }
 
@@ -801,6 +797,8 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
         //[Vein, RSP] 连接room成功。
         // ？？？为什么连接room的过程中没有使用SDK中的接口？
         // Why is signaling not defined by WebRTC?  https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/
+
+          logAndToast("<-onConnectedToRoom");
         onConnectedToRoomInternal(params);
       }
     });
@@ -812,6 +810,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
+          logAndToast("<-onRemoteDescription");
         if (peerConnectionClient == null) {
           Log.e(TAG, "Received remote SDP for non-initilized peer connection.");
           return;
@@ -833,6 +832,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
+          logAndToast("<-onRemoteIceCandidate");
         if (peerConnectionClient == null) {
           Log.e(TAG, "Received ICE candidate for a non-initialized peer connection.");
           return;
@@ -847,6 +847,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
+          logAndToast("<-onRemoteIceCandidatesRemoved");
         if (peerConnectionClient == null) {
           Log.e(TAG, "Received ICE candidate removals for a non-initialized peer connection.");
           return;
@@ -861,7 +862,9 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
+          logAndToast("<-onChannelClose");
         logAndToast("Remote end hung up; dropping PeerConnection");
+          logAndToast("->disconnect");
         disconnect();
       }
     });
@@ -869,6 +872,8 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
 
   @Override
   public void onChannelError(final String description) {
+
+      logAndToast("<-onChannelError");
     reportError(description);
   }
 
@@ -882,12 +887,16 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
+          logAndToast("<-onLocalDescription");
         if (appRtcClient != null) {
           logAndToast("Sending " + sdp.type + ", delay=" + delta + "ms");
           if (signalingParameters.initiator) {
               //[signaling] PeerConnection.setLocalDescription <-
+              logAndToast("->sendOfferSdp");
             appRtcClient.sendOfferSdp(sdp);
           } else {
+
+              logAndToast("->sendAnswerSdp");
             appRtcClient.sendAnswerSdp(sdp);
           }
         }
@@ -904,7 +913,9 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
+          logAndToast("<-onIceCandidate");
         if (appRtcClient != null) {
+            logAndToast("->sendLocalIceCandidate");
           appRtcClient.sendLocalIceCandidate(candidate);
         }
       }
@@ -916,7 +927,9 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
+          logAndToast("<-onIceCandidatesRemoved");
         if (appRtcClient != null) {
+            logAndToast("->sendLocalIceCandidateRemovals");
           appRtcClient.sendLocalIceCandidateRemovals(candidates);
         }
       }
@@ -929,7 +942,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        logAndToast("ICE connected, delay=" + delta + "ms");
+        logAndToast("<-onIceConnected, delay=" + delta + "ms");
       }
     });
   }
@@ -939,7 +952,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        logAndToast("ICE disconnected");
+        logAndToast("<-onIceDisconnected");
       }
     });
   }
@@ -950,7 +963,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        logAndToast("DTLS connected, delay=" + delta + "ms");
+        logAndToast("<-onConnected, DTLS connected, delay=" + delta + "ms");
         connected = true;
         callConnected();
       }
@@ -962,7 +975,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        logAndToast("DTLS disconnected");
+        logAndToast("<-onDisconnected, DTLS disconnected");
         connected = false;
         disconnect();
       }
@@ -970,13 +983,16 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
   }
 
   @Override
-  public void onPeerConnectionClosed() {}
+  public void onPeerConnectionClosed() {
+      logAndToast("<-onPeerConnectionClosed");
+  }
 
   @Override
   public void onPeerConnectionStatsReady(final StatsReport[] reports) {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
+//          logAndToast("<-onPeerConnectionStatsReady");
         if (!isError && connected) {
           hudFragment.updateEncoderStatistics(reports);
         }
@@ -986,6 +1002,7 @@ public class CallActivity extends Activity implements AppRTCClient.SignalingEven
 
   @Override
   public void onPeerConnectionError(final String description) {
+      logAndToast("<-onPeerConnectionError");
     reportError(description);
   }
 }
