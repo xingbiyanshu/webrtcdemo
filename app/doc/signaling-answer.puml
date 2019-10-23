@@ -1,0 +1,102 @@
+@startuml
+title <font size=20> WebRTC Signaling (Offer Role) </font> \n\n
+
+hide footbox
+
+'RTCClient负责通信通道
+participant DirectRTCClient as RC <<AppRTCClient >> <<TCPChannelEvents >> #ADD1B2
+'CallActivity负责用户交互
+participant CallActivity  as UI <<SignalingEvents >> << PeerConnectionEvents>> #ADD182
+'PeerConnectionClient基于android webrtcsdk封装了所有webrtc细节
+participant PeerConnectionClient as PCC
+
+'用户点击“呼叫按钮”
+[o-[#black]>>UI:  <color #blue> user clicked "call" btn </color>
+activate UI
+||30||
+'创建RTCClient
+create RC
+UI->RC:  <<create>>
+'创建PeerConnectionClient
+create PCC
+UI->PCC: <<create>>
+
+'创建PeerConnectionFactory（用以创建PeerConnection对象）
+UI->>PCC: createPeerConnectionFactory()
+activate PCC
+'为PeerConnectionFactory设置一些参数
+PCC->PCC: setFactoryOptions
+PCC->PCC: setAudioDeviceModule()
+PCC->PCC: setVideoEncoderFactory()
+PCC->PCC: setVideoDecoderFactory()
+PCC->PCC: createPeerConnectionFactory()
+deactivate PCC
+
+'向对端发起连接请求
+UI->>RC:  connectToRoom()
+activate RC
+<<- RC: connect
+...
+'对端响应连接成功
+-->> RC:  onTCPConnected()  <color #00AA00> // Ev_MT_GetOffer_Cmd </color>
+RC-->>UI:  onConnectedToRoom()
+deactivate RC
+
+'创建PeerConnection，开始signaling流程
+UI ->> PCC:  createPeerConnection(..., signalingParameters)
+activate PCC
+'创建媒体约束
+PCC->PCC: createMediaConstraints()
+PCC->PCC: createPeerConnection()
+'添加音视频轨道
+PCC->PCC: addTrack()
+deactivate PCC
+
+'创建offer
+UI ->> PCC:  createOffer(..., signalingParameters)
+activate PCC
+
+par candidate
+' signaling 流程candidate部分
+'本地IceCandidate可用通知
+PCC-->>UI: onIceCandidate(IceCandidate candidate)
+'发送IceCandidate给对端
+UI->>RC: sendLocalIceCandidate()
+<<--RC:sendLocalIceCandidate <color #00AA00> // Ev_MT_IceCandidate_Ntf </color>
+...
+'收到对端的IceCandidate响应
+-->>RC: onTCPMessage(String msg) <color #00AA00> // Ev_MT_SetIceCandidate_Cmd </color>
+RC -->> UI:  onRemoteIceCandidate(candidates)
+UI ->> PCC:  addRemoteIceCandidate(candidate)
+
+alt cachedRemoteIceCandidate != null\n(sdp progress not complete yet)
+'如果sdp流程还没走完则暂时缓存candidate
+PCC->PCC: resume cache RemoteIceCandidate
+else
+'若sdp流程已走完则直接添加candidate
+PCC->PCC: addRemoteIceCandidate()
+end
+
+else sdp
+' signaling 流程sdp部分
+
+PCC-->>UI: onLocalDescription(sdp)
+
+'发送offer给对端
+UI ->> RC:  sendOfferSdp(sdp)
+activate RC
+<<--RC: sendOfferSdp <color #00AA00> // Ev_MT_GetOffer_Ntf </color>
+...
+'收到对端的answer
+-->> RC:  onTCPMessage(String msg) <color #00AA00> // Ev_MT_SetAnswer_Cmd </color>
+RC -->> UI:  onRemoteDescription(sdp)
+'设置远端sdp
+UI ->> PCC:  setRemoteDescription(sdp)
+activate PCC
+PCC->PCC: setRemoteDescription()
+'对于offer方在设置远端sdp后addIceCandidate（此时sdp交互完成）
+PCC->PCC: drainCandidates()
+
+end
+
+@enduml

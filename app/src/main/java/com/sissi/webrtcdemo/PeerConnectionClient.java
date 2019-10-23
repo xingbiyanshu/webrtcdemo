@@ -37,6 +37,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import com.sissi.webrtcdemo.AppRTCClient.SignalingParameters;
 import com.sissi.webrtcdemo.RecordedAudioToFileController;
+import com.sissi.webrtcdemo.util.KLog;
+
 import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
 import org.webrtc.CameraVideoCapturer;
@@ -599,20 +601,28 @@ public class PeerConnectionClient {
 
     List<String> mediaStreamLabels = Collections.singletonList("ARDAMS");
     if (isVideoCallEnabled()) {
-      //[SDK] 添加视频轨道
+      //[SDK] 配置发送本地视频轨道
       peerConnection.addTrack(createVideoTrack(videoCapturer), mediaStreamLabels);
       // We can add the renderers right away because we don't need to wait for an
       // answer to get the remote track.
-      remoteVideoTrack = getRemoteVideoTrack();
-      remoteVideoTrack.setEnabled(renderVideo);
-      for (VideoSink remoteSink : remoteSinks) {
-        remoteVideoTrack.addSink(remoteSink);
-      }
+      // 配置接收对端视频轨道
+//      remoteVideoTrack = getRemoteVideoTrack();
+//      remoteVideoTrack.setEnabled(renderVideo);
+//      for (VideoSink remoteSink : remoteSinks) {
+//        remoteVideoTrack.addSink(remoteSink);
+//      }
     }
     // [SDK] 添加音频轨道
     peerConnection.addTrack(createAudioTrack(), mediaStreamLabels);
     if (isVideoCallEnabled()) {
       findVideoSender();
+    }
+    for (RtpTransceiver transceiver : peerConnection.getTransceivers()) {
+      KLog.p("peerConnection=%s, " +
+                      "transceiver=%s, sender=%s Receiver=%s, sendtrack=%s, recv track=%s",
+              peerConnection,
+              transceiver, transceiver.getSender(),transceiver.getReceiver(),
+              transceiver.getSender().track(), transceiver.getReceiver().track());
     }
 
     if (peerConnectionParameters.aecDump) {
@@ -1272,7 +1282,27 @@ public class PeerConnectionClient {
     }
 
     @Override
-    public void onAddTrack(final RtpReceiver receiver, final MediaStream[] mediaStreams) {}
+    public void onAddTrack(final RtpReceiver receiver, final MediaStream[] mediaStreams) {
+      KLog.p("receiver=%s, recv track=%s", receiver, receiver.track());
+      for (MediaStream stream : mediaStreams){
+        KLog.p("stream=%s", stream);
+        for (AudioTrack track : stream.audioTracks){
+          KLog.p("audio track=%s", track);
+        }
+        for (VideoTrack track : stream.videoTracks){
+          KLog.p("video track=%s", track);
+        }
+      }
+      MediaStreamTrack track = receiver.track();
+      if (track instanceof VideoTrack) {
+        VideoTrack videoTrack = (VideoTrack) track;
+        videoTrack.setEnabled(true);
+        for (VideoSink remoteSink : remoteSinks) {
+          videoTrack.addSink(remoteSink);
+        }
+      }
+
+    }
   }
 
   // Implementation detail: handle offer creation/signaling and answer setting,
